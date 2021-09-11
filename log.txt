@@ -1,0 +1,20 @@
+dataIn: 
+I mean...the ancient oven will be fixed.
+However! ;
+words: [['', 'I'], 'mean...the', 'ancient', 'oven', 'will', 'be', ['fixed.', 'However!'], ''];
+
+dataIn: sleeps in a
+;
+words: ['sleeps', 'in', ['a', '']];
+
+dataIn:  is to the southwest, but
+there are a bunch of monsters out there,
+so be careful.;
+words: ['', 'is', 'to', 'the', 'southwest,', ['but', 'there'], 'are', 'a', 'bunch', 'of', 'monsters', 'out', ['there,', 'so'], 'be', 'careful.'];
+
+dataIn: things
+that I don't gather in the forest.
+Please choose anything you want!
+Or...;
+words: [['things', 'that'], 'I', "don't", 'gather', 'in', 'the', ['forest.', 'Please'], 'choose', 'anything', 'you', ['want!', 'Or...']];
+
