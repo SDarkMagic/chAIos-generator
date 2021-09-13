@@ -18,3 +18,7 @@ Please choose anything you want!
 Or...;
 words: [['things', 'that'], 'I', "don't", 'gather', 'in', 'the', ['forest.', 'Please'], 'choose', 'anything', 'you', ['want!', 'Or...']];
 
+dataIn: The real thing is really
+the real deal!;
+words: ['The', 'real', 'thing', 'is', ['really', 'the'], 'real', 'deal!'];
+

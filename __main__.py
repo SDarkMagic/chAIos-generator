@@ -27,6 +27,7 @@ useAiTextGen.add_argument('-m', type=str, help='Name of the model to load for te
 retrain = subparsers.add_parser('Train', aliases=['train', 'retrain', 'Retrain'])
 retrain.add_argument('-f', type=str, help='Path to text file containing data to retrain the model off of.', required=False, default=None, dest='trainingData')
 retrain.add_argument('-o', type=str, help='Name to save the Generated model as (optional)', required=False, default='markov_textgen.json', dest='outputModelName')
+retrain.add_argument('-n', type=int, help='Number of epochs to be used when training the new model. If the flag is not set, only one epoch will be run.', required=False, default=1, dest='epochs')
 
 # Outputs a sample of what the AI can generate
 sampleText = subparsers.add_parser('Sample', aliases=['sample'])
@@ -151,9 +152,14 @@ def trainModel(args):
     with open(trainingDataFile, 'rt', encoding='utf-8') as readData:
         trainingData = readData.read()
 
+    # Deprecated method of training old models
+    """
     gen = MarkovTextGenerator(load_model=False)
     gen.train(trainingData)
     gen.save_model(f'{util.get_data_dir()}/Models/{args.outputModelName}')
+    """
+    gen=textgenrnn()
+    gen.train_from_file(file_path=trainingDataFile, num_epochs=args.epochs)
     print('Trained new model!')
 
 def pirateMode(args):
