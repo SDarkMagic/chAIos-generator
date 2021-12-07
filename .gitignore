@@ -1,0 +1,10 @@
+sentenceCache.txt
+textgenrnn_weights.hdf5
+wordCache.txt
+
+*.pyc
+*.zip
+*.log
+
+__pycahce__/
+Atmosphere/
