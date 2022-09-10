@@ -1,10 +1,21 @@
-sentenceCache.txt
 textgenrnn_weights.hdf5
-wordCache.txt
+out
+english
+english-decomp
+common_msbt
+common_msbt-decomp
+Bootup_USen.pack
 
 *.pyc
 *.zip
 *.log
+*.msbt
+*.pack
+*.ssarc
+*.txt
+*.json
 
 __pycahce__/
-Atmosphere/
+.vscode
+assets/
+downloadedImages/
