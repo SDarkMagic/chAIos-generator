@@ -7,10 +7,11 @@
 *.txt
 *.json
 
-__pycahce__/
+__pycache__/
 .vscode
 assets/
 downloadedImages/
+testimgs/
 
 textgenrnn_weights.hdf5
 out
