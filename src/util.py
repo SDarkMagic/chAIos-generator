@@ -60,11 +60,11 @@ def clean_emotes(lines: list):
         newLine = []
         for word in line.split(' '):
             for prefix in prefixes:
-                if prefix not in word and word.encode(encoding='UTF-16', errors='ignore').decode(encoding='UTF-16') != '':
+                if not word.startswith(prefix) and word.encode(encoding='UTF-16', errors='ignore').decode(encoding='UTF-16') != '':
                     newLine.append(word)
                 else:
                     continue
-        if newLine != []:
+        if len(newLine) > 0:
             linesOut.append(' '.join(newLine))
         else:
             continue
