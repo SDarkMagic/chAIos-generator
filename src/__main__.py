@@ -15,6 +15,7 @@ import colorama
 import random
 import arrr
 import json
+import re
 
 colorama.init()
 
@@ -350,6 +351,49 @@ def pirateMode(args):
         for file in bootup.textFiles[directory].keys():
             filePath = f'Message/Msg_{bootup.region}{bootup.language}.product.ssarc//{directory}/{file}'
             newMsbtData = bootup.replaceFileData(filePath, arrr.translate)
+            outFilePath = pathlib.Path(f'{outputDir}/{directory}/{file}').absolute()
+            with open(outFilePath, 'wb') as writePath:
+                startTime = time.time()
+                writePath.write(newMsbtData)
+                elapsedTime = time.time() - startTime
+                print(f'Wrote data to {outFilePath} in {elapsedTime} seconds.\n')
+        print(bootup.getTotalElapsedTime())
+
+def _ussify(dataIn: str):
+    words = dataIn.split(' ')
+    for word in words:
+        if '\n' in word:
+            words[words.index(word)] = word.split('\n')
+    vowels = ['a', 'e', 'i', 'o', 'u', 'y']
+    for word in words:
+        if (isinstance(word, list)):
+            newLine = []
+            for piece in word:
+                if(piece.split('')[-1] in vowels):
+                    piece[-1] = ''
+                newLine.append(f'{piece}ussy')
+            words[words.index(word)] = '\n'.join(newLine)
+        else:
+            if(word.split('')[-1] in vowels):
+                word[-1] = ''
+            words[words.index(word)] = f'{word}ussy'
+    return ' '.join(words)
+
+def ussify(args):
+    global generator
+    if args.bootupFile == None:
+        bootupPath = input('Path to the Bootup text pack file to use as a base: ')
+    else:
+        bootupPath = args.bootupFile
+    if args.outputDir == None:
+        outputDir = input('Path to the directory where the files will be outputted(Please note that the directory structure MUST mimic the structure found within the Message.ssarc file) ')
+    else:
+        outputDir = args.outputDir
+    bootup = util.Bootup_Msg(bootupPath)
+    for directory in bootup.textFiles.keys():
+        for file in bootup.textFiles[directory].keys():
+            filePath = f'Message/Msg_{bootup.region}{bootup.language}.product.ssarc//{directory}/{file}'
+            newMsbtData = bootup.replaceFileData(filePath, _ussify)
             outFilePath = pathlib.Path(f'{outputDir}/{directory}/{file}').absolute()
             with open(outFilePath, 'wb') as writePath:
                 startTime = time.time()
