@@ -8,8 +8,7 @@ from PIL import Image
 import json
 import util
 
-#bfresLibPath = 'D:\\Etc\\BotW_MassTextChanges\\src\\lib\\BfresLibrary\\BfresLibrary\\bin\\Debug\\net45'
-bfresLibPath = 'C:\\Users\\drago\\Desktop\\BotW_MassTextChanges\\src\\lib\\BfresLibrary\\BfresLibrary\\bin\\Debug\\net45'
+bfresLibPath = pathlib.Path(__file__).parent / 'lib\\BfresLibrary\\BfresLibrary\\bin\\Debug\\net45'
 sys.path.append(bfresLibPath)
 
 clr.AddReference('BfresLibrary')

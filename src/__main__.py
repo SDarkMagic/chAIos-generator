@@ -17,6 +17,8 @@ import arrr
 import json
 import re
 
+from text_replacers import *
+
 colorama.init()
 
 configPath = util.get_data_dir() / 'config.json'
@@ -72,108 +74,6 @@ def checkType(valIn, typeCheck):
         except:
             print(f'Value: {valIn} either could not be converted to, or was not type {typeCheck}. Please try the command again with the correct data type.')
             return False
-
-def randomSentence(dataIn: str, **kwargs):
-    words = dataIn.split(' ')
-    # Filters out NewLine chars
-    for word in words:
-        if '\n' in word:
-            words[words.index(word)] = word.split('\n')
-
-    def getTrueLength(listIn: list) -> int:
-        trueCount = 0
-        for word in listIn:
-            if isinstance(word, str):
-                trueCount += 1
-            elif isinstance(word, list):
-                trueCount += getTrueLength(word)
-            else:
-                print("Wasn't a string or list")
-                continue
-        return trueCount
-    refreshCache = random.randint(0, 10000)
-
-    if refreshCache == 3751:
-        generator.init_sentence_cache()
-        generator.init_word_cache()
-    else:
-        pass
-
-    wordLength = getTrueLength(words)
-    if wordLength < 3:
-        if wordLength == 1:
-            generatedText = generator.text_generator.gen_word()
-        else:
-            generatedText = generator.gen_sentence(min_words=wordLength, max_words=wordLength)
-    else:
-        generatedText = generator.gen_sentence(min_words=(wordLength), max_words=wordLength)
-    generatedTextList = generatedText.split(' ')
-    for word in words:
-        if isinstance(word, list):
-            wordIndex = words.index(word)
-            try:
-                generatedTextList[wordIndex] = '\n'.join([generatedTextList[wordIndex], generatedTextList[wordIndex + 1]])
-                generatedTextList.pop(wordIndex + 1)
-            except:
-                try:
-                    generatedTextList[wordIndex] = f'{str(generatedTextList[wordIndex])}\n'
-                except:
-                    errorData = f'dataIn: {dataIn};\nwords: {words};\n\n'
-                    print(f'{colorama.Fore.RED}{errorData}{colorama.Style.RESET_ALL}')
-                    with open('./log.txt', 'at') as writeError:
-                        writeError.write(errorData)
-                    if len(generatedTextList) < 1:
-                        generatedTextList.append('\n')
-        else:
-            continue
-    dataOut = ' '.join(generatedTextList)
-    return(dataOut)
-
-def rnnRandomSentence(dataIn: str, temperature):
-    words = dataIn.split(' ')
-    # Filters out NewLine chars
-    for word in words:
-        if '\n' in word:
-            words[words.index(word)] = word.split('\n')
-
-    def getTrueLength(listIn: list) -> int:
-        trueCount = 0
-        for word in listIn:
-            if isinstance(word, str):
-                trueCount += 1
-            elif isinstance(word, list):
-                trueCount += getTrueLength(word)
-            else:
-                print("Wasn't a string or list")
-                continue
-        return trueCount
-
-    wordLength = getTrueLength(words)
-    rnnGenerator.config['max_length'] = wordLength
-    if temperature == 'random':
-        temperature = round(random.uniform(0.0, 1.0), 4)
-    generatedText = rnnGenerator.generate(n=1, temperature=temperature)
-    generatedTextList = generatedText.split(' ')
-    for word in words:
-        if isinstance(word, list):
-            wordIndex = words.index(word)
-            try:
-                generatedTextList[wordIndex] = '\n'.join([generatedTextList[wordIndex], generatedTextList[wordIndex + 1]])
-                generatedTextList.pop(wordIndex + 1)
-            except:
-                try:
-                    generatedTextList[wordIndex] = f'{str(generatedTextList[wordIndex])}\n'
-                except:
-                    errorData = f'dataIn: {dataIn};\nwords: {words};\n\n'
-                    print(f'{colorama.Fore.RED}{errorData}{colorama.Style.RESET_ALL}')
-                    with open('./log.txt', 'at') as writeError:
-                        writeError.write(errorData)
-                    if len(generatedTextList) < 1:
-                        generatedTextList.append('\n')
-        else:
-            continue
-    dataOut = ' '.join(generatedTextList)
-    return(dataOut)
 
 def AiGenText(args):
     global generator
@@ -369,14 +269,20 @@ def _ussify(dataIn: str):
         if (isinstance(word, list)):
             newLine = []
             for piece in word:
-                if(piece.split('')[-1] in vowels):
-                    piece[-1] = ''
-                newLine.append(f'{piece}ussy')
+                if piece != '':
+                    if(piece[-1] in vowels):
+                        piece.rstrip(piece[-1])
+                    newLine.append(f'{piece}ussy')
+                else:
+                    continue
             words[words.index(word)] = '\n'.join(newLine)
         else:
-            if(word.split('')[-1] in vowels):
-                word[-1] = ''
-            words[words.index(word)] = f'{word}ussy'
+            if word != '':
+                if(word[-1] in vowels):
+                    word.rstrip(word[-1])
+                words[words.index(word)] = f'{word}ussy'
+            else:
+                continue
     return ' '.join(words)
 
 def ussify(args):
@@ -410,7 +316,7 @@ def randomizeAll(args):
 sampleText.set_defaults(func=sample)
 useAiTextGen.set_defaults(func=AiGenText)
 retrain.set_defaults(func=trainModel)
-pirate.set_defaults(func=pirateMode)
+pirate.set_defaults(func=ussify)
 stockIcoReplace.set_defaults(func=randomStockIco)
 chaos.set_defaults(func=randomizeAll, temperature='random', game=0, textFile=None)
 
