@@ -6,6 +6,7 @@ import time
 import numpy as np
 import pathlib
 import os
+import text_replacers
 
 msbt_lib_path = pathlib.Path(__file__).parent / 'lib/EPD-Libraries/msbt/build/pymsbt3/'
 sys.path.append(str(msbt_lib_path.absolute()))
@@ -23,19 +24,18 @@ class MSBT:
             current_msg = ""
             for segment in entry.values:
                 current_msg += f' | {segment.text}'
-                self.data.text_section.text_entries[entries.index(entry)].values[entry.values.index(segment)].text = replacement_method(segment.text, **kwargs)
+                if segment.text != None:
+                    self.data.text_section.text_entries[entries.index(entry)].values[entry.values.index(segment)].text = replacement_method(segment.text, **kwargs)
 
         function_time = time.time() - start_time
         print(f'Function completed in {function_time} seconds.')
         return
 
     def save(self):
-        buf = io.BytesIO()
-        raw = bytearray(self.data.ToBinary())
+        raw = self.data.ToBinary()
         print('Finished converting to binary')
-        print(raw)
         with open(str(self.path.absolute()), 'wb') as output:
-            output.write(raw)
+            output.write(bytearray(raw))
 
 def pass_val(data):
     #print(f"called pass_val function with value {data}")
@@ -44,6 +44,6 @@ def pass_val(data):
 if __name__ == '__main__':
     msg = MSBT("C:/Users/drago/Documents/totkMods/Text/romfs/Mals/USen.Product.100/ActorMsg/PouchContent.msbt")
     data = msg.data
-    msg.replace_strings(pass_val)
+    msg.replace_strings(text_replacers.randomSentence)
     msg.save()
     print(data.ToText())
