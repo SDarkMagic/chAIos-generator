@@ -1,19 +1,19 @@
 from distutils.text_file import TextFile
-from os import read
 import pathlib
 import time
 import argparse
 
 #from tensorflow.python.keras.backend import rnn
 import util
-import bfres
-import imgUtils as img
+#import bfres
+import totk
+import text_replacers
+#import imgUtils as img
 from essential_generators import MarkovTextGenerator, document_generator
 from essential_generators import DocumentGenerator
 #from textgenrnn import textgenrnn
 import colorama
 import random
-import arrr
 import json
 import re
 
@@ -50,6 +50,11 @@ sampleText.add_argument('-t', '--temperature', help='A float value from 0 to 1 t
 pirate = subparsers.add_parser('Pirate', aliases=['pirate'])
 pirate.add_argument('-b', type=str, help='Path to the Bootup text file.', required=False, default=None, dest='bootupFile')
 pirate.add_argument('-o', type=str, help='Path to output modified MSBT files to.', required=False, default=None, dest='outputDir')
+
+# CLI setup for google translate of totk data
+translate_replacer = subparsers.add_parser('translate')
+translate_replacer.add_argument('src_dir',  help='Path to directory of the extracted totk text pack.')
+translate_replacer.add_argument('-o', type=str, help="Output parent directory.", required=False, default=None, dest="output")
 
 # StockIco stuffs
 stockIcoReplace = subparsers.add_parser('image')
@@ -313,11 +318,37 @@ def randomizeAll(args):
     randomStockIco(args)
     return
 
+def translate_obfuscate(args):
+    output = None
+    if args.output != None:
+        output = pathlib.Path(args.output)
+    config = util.getConfigData()
+    src_dir = pathlib.Path(args.src_dir)
+    translator = text_replacers.Translate(1)
+    files = src_dir.rglob('*.msbt')
+    start_time_total = time.time()
+    for file in files:
+        msbt_data = totk.MSBT(str(file.absolute()))
+        print(f'Processing "{msbt_data.path.name}" from the directory {str(msbt_data.path.parent)}...')
+        startTime = time.time()
+        msbt_data.replace_strings(translator.parse)
+        msbt_data.save()
+        print(f'Wrote data to {msbt_data.path} in {time.time() - startTime} seconds.\n')
+        if (output != None):
+            dest = output / msbt_data.path.relative_to(msbt_data.path.parent.parent)
+            msbt_data.path.replace(dest)
+            print(f'Successfully moved file from: {msbt_data.path}\nto: {dest}\n\n')
+    total_elapsed_time = time.time() - start_time_total
+    print(f'Processed all files in {total_elapsed_time}')
+    print(f'Language order: {" => ".join(translator.language_order)}')
+    return
+
 sampleText.set_defaults(func=sample)
 useAiTextGen.set_defaults(func=AiGenText)
 retrain.set_defaults(func=trainModel)
 pirate.set_defaults(func=ussify)
 stockIcoReplace.set_defaults(func=randomStockIco)
+translate_replacer.set_defaults(func=translate_obfuscate)
 chaos.set_defaults(func=randomizeAll, temperature='random', game=0, textFile=None)
 
 if __name__ == '__main__':

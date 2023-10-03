@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+argparse = "*"
+colorama = "*"
+oead = "*"
+pathlib = "*"
+unitypy = "*"
+pymsyt = "*"
+essential-generators = "*"
+google-cloud-translate = "==2.0.1"
+wildbits = "*"
+pythonnet = "*"
+numpy = "*"
+googletrans = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.7"
