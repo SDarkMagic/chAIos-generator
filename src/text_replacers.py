@@ -7,32 +7,38 @@ from googletrans import Translator, LANGUAGES
 from google.cloud import translate_v2 as translate
 
 colorama.init()
-generator = DocumentGenerator()
 
-def getTrueLength(listIn: list) -> int:
-        trueCount = 0
-        for word in listIn:
-            if isinstance(word, str):
-                trueCount += len(word)
-            elif isinstance(word, list):
-                trueCount += getTrueLength(word)
-            else:
-                print("Wasn't a string or list")
-                continue
-        return trueCount
+class Method:
+    def __init__(self, func):
+        self.method = func
 
-def flatten_string(data: str, return_indices=False):
-    words = data.split(' ')
-    indices = []
-    for word in words:
-        if '\n' in word:
-            index = words.index(word)
-            words[index] = word.split('\n')
-            indices.append(index)
-    return (words, indices) if return_indices == True else words
+    @staticmethod
+    def get_true_length(list_in: list) -> int:
+            true_count = 0
+            for word in list_in:
+                if isinstance(word, str):
+                    true_count += len(word)
+                elif isinstance(word, list):
+                    true_count += Method.get_true_length(word)
+                else:
+                    print("Wasn't a string or list")
+                    continue
+            return true_count
 
-class Translate:
+    @staticmethod
+    def flatten_string(data: str, return_indices=False):
+        words = data.split(' ')
+        indices = []
+        for word in words:
+            if '\n' in word:
+                index = words.index(word)
+                words[index] = word.split('\n')
+                indices.append(index)
+        return (words, indices) if return_indices == True else words
+
+class Translate(Method):
     def __init__(self, obfuscation_depth=4) -> None:
+        super().__init__(self.parse)
         self.lang_codes = list(LANGUAGES.keys())
         self.translator = translate.Client()
         self.language_order = self._gen_lang_order(obfuscation_depth)
@@ -51,7 +57,7 @@ class Translate:
         return langs
 
     def parse(self, data: str):
-        words, new_line_positions = flatten_string(data, True)
+        words, new_line_positions = self.flatten_string(data, True)
         raw = data.replace('\n', ' ')
         current_string = raw
         result = ''
@@ -81,46 +87,51 @@ class Translate:
             result = unicode_regex.sub(converted_char, result)
         return result
 
-def randomSentence(dataIn: str, **kwargs):
-    words = flatten_string(dataIn)
+class Markovian(Method):
+    def __init__(self):
+        self.generator = DocumentGenerator()
+        super().__init__(self.random_sentence)
 
-    refreshCache = random.randint(0, 10000)
+    def random_sentence(self, dataIn: str, **kwargs):
+        words = self.flatten_string(dataIn)
 
-    if refreshCache == 3751:
-        generator.init_sentence_cache()
-        generator.init_word_cache()
-    else:
-        pass
+        refresh_cache = random.randint(0, 10000)
 
-    wordLength = getTrueLength(words)
-    if wordLength < 3:
-        if wordLength == 1:
-            generatedText = generator.text_generator.gen_word()
+        if refresh_cache == 3751:
+            self.generator.init_sentence_cache()
+            self.generator.init_word_cache()
         else:
-            generatedText = generator.gen_sentence(min_words=wordLength, max_words=wordLength)
-    else:
-        generatedText = generator.gen_sentence(min_words=(wordLength), max_words=wordLength)
-    generatedTextList = generatedText.split(' ')
-    for word in words:
-        if isinstance(word, list):
-            wordIndex = words.index(word)
-            try:
-                generatedTextList[wordIndex] = '\n'.join([generatedTextList[wordIndex], generatedTextList[wordIndex + 1]])
-                generatedTextList.pop(wordIndex + 1)
-            except:
+            pass
+
+        wordLength = self.get_true_length(words)
+        if wordLength < 3:
+            if wordLength == 1:
+                generatedText = self.generator.text_generator.gen_word()
+            else:
+                generatedText = self.generator.gen_sentence(min_words=wordLength, max_words=wordLength)
+        else:
+            generatedText = self.generator.gen_sentence(min_words=(wordLength), max_words=wordLength)
+        generatedTextList = generatedText.split(' ')
+        for word in words:
+            if isinstance(word, list):
+                wordIndex = words.index(word)
                 try:
-                    generatedTextList[wordIndex] = f'{str(generatedTextList[wordIndex])}\n'
+                    generatedTextList[wordIndex] = '\n'.join([generatedTextList[wordIndex], generatedTextList[wordIndex + 1]])
+                    generatedTextList.pop(wordIndex + 1)
                 except:
-                    errorData = f'dataIn: {dataIn};\nwords: {words};\n\n'
-                    print(f'{colorama.Fore.RED}{errorData}{colorama.Style.RESET_ALL}')
-                    with open('./log.txt', 'at') as writeError:
-                        writeError.write(errorData)
-                    if len(generatedTextList) < 1:
-                        generatedTextList.append('\n')
-        else:
-            continue
-    dataOut = ' '.join(generatedTextList)
-    return(dataOut)
+                    try:
+                        generatedTextList[wordIndex] = f'{str(generatedTextList[wordIndex])}\n'
+                    except:
+                        errorData = f'dataIn: {dataIn};\nwords: {words};\n\n'
+                        print(f'{colorama.Fore.RED}{errorData}{colorama.Style.RESET_ALL}')
+                        with open('./log.txt', 'at') as writeError:
+                            writeError.write(errorData)
+                        if len(generatedTextList) < 1:
+                            generatedTextList.append('\n')
+            else:
+                continue
+        dataOut = ' '.join(generatedTextList)
+        return(dataOut)
 
 
 """
@@ -131,7 +142,7 @@ def rnnRandomSentence(dataIn: str, temperature):
         if '\n' in word:
             words[words.index(word)] = word.split('\n')
 
-    wordLength = getTrueLength(words)
+    wordLength = get_true_length(words)
     rnnGenerator.config['max_length'] = wordLength
     if temperature == 'random':
         temperature = round(random.uniform(0.0, 1.0), 4)

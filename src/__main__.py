@@ -7,7 +7,6 @@ import argparse
 import util
 #import bfres
 import totk
-import text_replacers
 #import imgUtils as img
 from essential_generators import MarkovTextGenerator, document_generator
 from essential_generators import DocumentGenerator
@@ -16,7 +15,7 @@ import colorama
 import random
 import json
 import re
-
+import file_formats
 from text_replacers import *
 
 colorama.init()
@@ -29,7 +28,7 @@ subparsers = parser.add_subparsers()
 
 # Ai Text Gen Method Subparser
 useAiTextGen = subparsers.add_parser('Generate', aliases=['generate', 'gen'])
-useAiTextGen.add_argument('-g', type=int, help='Game to be used; Input 0 for Botw, 1 for BDSP, or 2 for Splatoon 2. Defaults to 0', required=False, default=0, dest='game')
+useAiTextGen.add_argument('-g', type=int, help='Game to be used; Input 0 for Botw, 1 for BDSP, 2 for Splatoon 2, or 3 for Kirby and the Forgotten Land. Defaults to 0', required=False, default=0, dest='game')
 useAiTextGen.add_argument('-f', type=str, help="Path to the game's text file.", required=False, default=None, dest='textFile')
 useAiTextGen.add_argument('-o', type=str, help='Path to output modified text files to.', required=False, default=None, dest='outputDir')
 useAiTextGen.add_argument('-m', type=str, help='Name of the model to load for text generation (optional)', required=False, default='markov_textgen.json', dest='modelName')
@@ -68,6 +67,47 @@ chaos.add_argument('-o', type=str, help='Location of the graphics pack to output
 
 generator = DocumentGenerator()
 #rnnGenerator = textgenrnn()
+
+def random_sentence(dataIn: str, **kwargs):
+        words = Method.flatten_string(dataIn)
+
+        refresh_cache = random.randint(0, 10000)
+
+        if refresh_cache == 3751:
+            generator.init_sentence_cache()
+            generator.init_word_cache()
+        else:
+            pass
+
+        wordLength = Method.get_true_length(words)
+        if wordLength == 1:
+            generatedText = generator.text_generator.gen_word()
+        else:
+            generatedText = generator.gen_sentence(min_words=(wordLength), max_words=wordLength)
+        generatedTextList = generatedText.split(' ')
+        fixed_text_list = []
+        for word in words:
+            wordIndex = words.index(word)
+            if isinstance(word, list):
+                try:
+                    fixed_text_list.append('\n'.join([generatedTextList[wordIndex], generatedTextList[wordIndex + 1]]))
+                except IndexError:
+                    try:
+                        fixed_text_list.append(f'{str(generatedTextList[wordIndex])}\n')
+                    except:
+                        errorData = f'dataIn: {dataIn};\nwords: {words};\n\n'
+                        print(f'{colorama.Fore.RED}{errorData}{colorama.Style.RESET_ALL}')
+                        with open('./log.txt', 'at') as writeError:
+                            writeError.write(errorData)
+                        if len(generatedTextList) < 1:
+                            generatedTextList.append('\n')
+            else:
+                try:
+                    fixed_text_list.append(generatedTextList[wordIndex])
+                except:
+                    continue
+        dataOut = ' '.join(fixed_text_list)
+        return(dataOut)
 
 def checkType(valIn, typeCheck):
     if isinstance(valIn, typeCheck):
@@ -119,7 +159,7 @@ def AiGenText(args):
         for directory in bootup.textFiles.keys():
             for file in bootup.textFiles[directory].keys():
                 filePath = f'Message/Msg_{bootup.region}{bootup.language}.product.ssarc//{directory}/{file}'
-                newMsbtData = bootup.replaceFileData(filePath, randomSentence, temperature=temperature)
+                newMsbtData = bootup.replaceFileData(filePath, random_sentence, temperature=temperature)
                 outFilePath = pathlib.Path(util.findMKDir(f'{outputDir}/content/Pack/Bootup_{bootup.region}{bootup.language}/Message/Msg_{bootup.region}{bootup.language}.product//{directory}') / file).absolute()
                 startTime = time.time()
                 with open(outFilePath, 'wb') as writePath:
@@ -140,7 +180,7 @@ def AiGenText(args):
             assets.openFile(str(file.absolute()))
             print(assets.env.file)
             assets.data = assets.readFileData(assets.env)
-            outData, timeElapsed = assets.replaceFileData(randomSentence)
+            outData, timeElapsed = assets.replaceFileData(random_sentence)
             print(f'Replaced data from the file "{file.name}" in {timeElapsed} seconds.')
             startTime = time.time()
             assets.saveData(assets.env, outData)
@@ -153,6 +193,16 @@ def AiGenText(args):
     elif args.game == 2:
         print('Currently unsupported game. Exiting...')
         return
+
+    elif args.game == 3:
+        if args.textFile == None:
+            textPath = input('Path to the text file or text file directory to use as a base: ')
+        else:
+            textPath = args.textFile
+        for file in pathlib.Path(textPath).rglob('*.msbt'):
+            msbt = totk.MSBT(file)
+            msbt.replace_strings(random_sentence)
+            msbt.save()
 
     else:
         print("Invalid game selection; terminating...")

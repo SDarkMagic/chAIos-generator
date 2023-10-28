@@ -6,7 +6,7 @@ import time
 import numpy as np
 import pathlib
 import os
-import text_replacers
+#import text_replacers
 
 msbt_lib_path = pathlib.Path(__file__).parent / 'lib/EPD-Libraries/msbt/build/pymsbt3/'
 sys.path.append(str(msbt_lib_path.absolute()))
@@ -53,6 +53,6 @@ def pass_val(data):
 if __name__ == '__main__':
     msg = MSBT("D:/Console Stuff/Switch Stuff/Game Dumps/TotK/romfs/Mals/USen.Product.110/StaticMsg/Tips.msbt")
     data = msg.data
-    msg.replace_strings(text_replacers.randomSentence)
+    #msg.replace_strings(text_replacers.randomSentence)
     msg.save()
     print(data.ToText())
